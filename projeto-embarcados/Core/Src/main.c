@@ -22,8 +22,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include <string.h>
+#include "adc_sensor.h"
+#include "filter.h"
+#include "rtc_utils.h"
+#include "sd_logger.h"
+#include "usb_comm.h"
 #include <stdio.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -33,41 +38,6 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
-
-#define NUM_ADC_CHANNELS 8
-
-#define ADC_BUFFER_SIZE (NUM_ADC_CHANNELS * 64)
-
-#define ADC_TENSAO1       0
-#define ADC_TENSAO2       1
-#define ADC_CORRENTE1     2
-#define ADC_CORRENTE2     3
-#define ADC_TEMPERATURA1  4
-#define ADC_TEMPERATURA2  5
-#define ADC_MASSA1        6
-#define ADC_MASSA2        7
-
-#define ADC_MAX_VALUE 4095.0f
-
-#define ADC_VREF 3.3f
-
-#define CALIBRATION_FACTOR_TENSAO1      66.66f
-#define CALIBRATION_FACTOR_TENSA2       66.66f
-
-// Fatores de calibração para corrente (A/count_ADC)
-#define CALIBRATION_FACTOR_CORRENTE1    0.1f
-#define CALIBRATION_FACTOR_CORRENTE2    0.1f
-
-// Fatores de calibração para temperatura (C/count_ADC)
-#define CALIBRATION_FACTOR_TEMPERATURA1 100.0f
-#define CALIBRATION_FACTOR_TEMPERATURA2 100.0f
-
-// Placeholder para o ADS1232
-#define CALIBRATION_FACTOR_MASSA1       0.001f
-#define CALIBRATION_FACTOR_MASSA2       0.001f
-
-
 
 /* USER CODE END PD */
 
@@ -90,12 +60,7 @@ PCD_HandleTypeDef hpcd_USB_FS;
 
 DMA_HandleTypeDef hdma_memtomem_dma1_channel2;
 /* USER CODE BEGIN PV */
-uint16_t adcBuffer[ADC_BUFFER_SIZE];
-float tensao1Eng, tensao2Eng;
-float corrente1Eng, corrente2Eng;
-float temperatura1Eng, temperatura2Eng;
-float massa1Eng, massa2Eng;
-volatile uint8_t adcDmaTransferComplete = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -116,34 +81,6 @@ float ReadADS1232Massa2(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void halADCConvCallback(ADC_HandleTypeDef* hadc) {
-	if(hadc->Instance == ADC1) {
-		adcDmaTransferComplete = 1;
-	}
-}
-
-FATFS fs;
-FIL fil;
-FRESULT fr;
-char log_file[] = "log.txt";
-
-void SDWriteData(char* data)
-{
-	fr = f_mount(&fs, "", 1);
-	if(fr == FR_OK) {
-		fr = f_open(&fil, log_file_name, FA_OPEN_ALWAYS | FA_WRITE);
-		if(fr == FR_OK) {
-			f_lseek(&fil, f_size(&fil));
-			f_puts(data, &fil);
-			f_close(&fil);
-		}
-		f_mount(NULL, "", 1);
-	}
-}
-
-float ReadADS1232Massa(void) {
-
-}
 
 
 /* USER CODE END 0 */
