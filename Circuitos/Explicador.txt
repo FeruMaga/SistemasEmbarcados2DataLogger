@@ -1,0 +1,88 @@
+🔹 2. Ative os Periféricos
+✅ ADC1 – 8 canais
+Vá até Peripherals > ADC > ADC1
+
+Configure os canais:
+
+IN0 → PA0
+
+IN1 → PA1
+
+IN2 → PA2
+
+IN3 → PA3
+
+IN4 → PA4
+
+IN5 → PA5
+
+IN6 → PA6
+
+IN7 → PA7
+
+Na aba Configuration (ADC1):
+
+Scan Conversion Mode: Enabled
+
+Continuous Conversion: Enabled
+
+DMA Continuous Requests: Enabled
+
+Number of conversions: 8
+
+✅ DMA1 Channel1
+Vá em DMA Settings (na janela do ADC1)
+
+Adicione DMA1 Channel1
+
+Mode: Circular
+
+✅ SPI1 – Cartão SD
+Ative SPI1
+
+Configure os pinos:
+
+SCK → PA5
+
+MISO → PA6
+
+MOSI → PA7
+
+Adicione PA4 como GPIO Output (CS do SD Card)
+
+✅ I2C1 – RTC DS3231
+Ative I2C1
+
+Configure os pinos:
+
+SCL → PB6
+
+SDA → PB7
+
+✅ FatFs
+Vá até Middleware > FatFs
+
+Enable
+
+Interface: User-defined
+
+(Opcional) ✅ USART1 – Serial Debug
+Ative USART1
+
+TX → PA9
+
+RX → PA10
+
+Baudrate: 115200
+
+🔹 3. Clock Configuration
+Use HSE (cristal externo) ou HSI com PLL
+
+Configure SYSCLK para 72 MHz
+
+🔹 4. Project Manager
+Nome: DataLogger
+
+Toolchain: STM32CubeIDE
+
+Clique em Generate Code
