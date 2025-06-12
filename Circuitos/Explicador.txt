@@ -1,88 +1,428 @@
-🔹 2. Ative os Periféricos
-✅ ADC1 – 8 canais
-Vá até Peripherals > ADC > ADC1
+Preciso faz isso no stm32 ide cube me ajude a configurar! # Projeto Sistemas Embarcados 2
+IDE utilizada STM32 Cube IDE. 
+Necessário logar no STM32 Cube IDE e permitir instalações.
 
-Configure os canais:
+Microprocessador STM32F103C8T6
 
-IN0 → PA0
+Leitura de Tensão e Corrente, serão feitas por um ADS1115 em configuração Single-Ended, um canal do ADC pra cada canal de medição, a comunicação dele é I2C.
 
-IN1 → PA1
+Temperatura será mais um ADS1115 em configuração diferencial, canal 0 e 1 do ADC para o primeiro canal de temperatura e canal 2 e 3 do adc para o segundo canal de medição.
 
-IN2 → PA2
+Para o circuito de massa um ADS1232, tem comunicação UART(USUART) com o microprocessador.
 
-IN3 → PA3
+ADC12_IN0	Tensão1
+ADC12_IN1	Tensão2
+ADC12_IN2	Corrente1
+ADC12_IN3	Corrente2
+ADC12_IN4	Temperatura1
+ADC12_IN5	Temperatura2
+ADC12_IN6	Massa1
+ADC12_IN7	Massa2
 
-IN4 → PA4
+amostre sinais de até 10kHz
+Isso significa que precisam ser 20 mil amostras por segundos pra ter um sinal confiável
 
-IN5 → PA5
+Pra essa amostragem acredito que teria que usar DMA pra armazenar os dados em um buffer e depois executar a conversão e salvar no SD
 
-IN6 → PA6
+220V PICO
 
-IN7 → PA7
-
-Na aba Configuration (ADC1):
-
-Scan Conversion Mode: Enabled
-
-Continuous Conversion: Enabled
-
-DMA Continuous Requests: Enabled
-
-Number of conversions: 8
-
-✅ DMA1 Channel1
-Vá em DMA Settings (na janela do ADC1)
-
-Adicione DMA1 Channel1
-
-Mode: Circular
-
-✅ SPI1 – Cartão SD
-Ative SPI1
-
-Configure os pinos:
-
-SCK → PA5
-
-MISO → PA6
-
-MOSI → PA7
-
-Adicione PA4 como GPIO Output (CS do SD Card)
-
-✅ I2C1 – RTC DS3231
-Ative I2C1
-
-Configure os pinos:
-
-SCL → PB6
-
-SDA → PB7
-
-✅ FatFs
-Vá até Middleware > FatFs
-
-Enable
-
-Interface: User-defined
-
-(Opcional) ✅ USART1 – Serial Debug
-Ative USART1
-
-TX → PA9
-
-RX → PA10
-
-Baudrate: 115200
-
-🔹 3. Clock Configuration
-Use HSE (cristal externo) ou HSI com PLL
-
-Configure SYSCLK para 72 MHz
-
-🔹 4. Project Manager
-Nome: DataLogger
-
-Toolchain: STM32CubeIDE
-
-Clique em Generate Code
+Configurar o micro para usar DMA para leitura dos canais ADC.
+Conversão de counts para unidade de engenharia ao gravar no micro SD.Circuito de Alimentação 
+DATA LOGGER 
+Requisitos: 
+▪ Alimentado por uma porta USB; 
+▪ Possuir bateria para operação sem fio; 
+▪ As baterias devem ser de lítio em um arranjo de 2, 3 ou 4 células; 
+▪ Para que o carregamento seja seguro, um circuito de balanceamento de células 
+deverá ser implantado; 
+▪ Fornecer os devidos níveis de tensão para os demais circuitos (5V, 3.3V, etc). 
+Observações: 
+▪ USB-C pode facilitar para o carregamento das baterias ser mais eficiente;  
+▪ O CI BQ77915 é um exemplo de balanceador de carga para até 5 células. 
+Circuito de Data e Hora 
+Requisitos: 
+▪ Fornecer informação de data e hora para o microcontrolador. 
+Observações: 
+▪ Já existem CIs capazes de fornecer essa informação em um barramento I²C, como 
+o DS3231, ele mantém a data e hora mesmo depois de desligado com o uso de uma 
+bateria auxiliar como uma CR2032. 
+Circuito para Cartão SD 
+Requisitos: 
+▪ Gravar os dados medidos pelo data logger, para que possam ser usados 
+posteriormente. 
+Observações: 
+▪ Cartões SD podem ser ligados em microprocessadores através de um barramento 
+SPI com nível lógico 3.3V, sem o uso de CIs para interface. 
+Circuito para Medição de Temperatura 
+Requisitos:  
+▪ 2 canais para medição de temperaturas entre -55ºC e 85ºC; 
+▪ Amostragem de pelo menos 10 SPS. 
+Observações: 
+▪ Necessário definir tipo de sonda a ser usada (PTC, Termopar, etc). 
+Circuito para Medição de Tensão 
+Requisitos: 
+▪ 2 canais para medição de tensão em valores até 220Vac e frequência até 10KHz, 
+assim como tensões contínuas. 
+Observações:  
+▪ Sinais de 220Vac quando retificadas chegam próximo de 320Vdc, atentar para esse 
+limite nos circuitos; 
+▪ Atentar para a frequência em que os circuitos serão capazes de fazer a medição, 
+não podendo ter a frequência de corte abaixo dos 10KHz. 
+Circuito para Medição de Corrente 
+Requisitos: 
+▪ 2 canais para medição de corrente em valores até 5A AC com frequência até 10KHz, 
+assim como correntes contínuas. 
+Observações:  
+▪ Sinais de corrente alternada tem valores de pico maiores que o valor RMS, atentar 
+para esses valores e limites nos circuitos; 
+▪ Atentar para a frequência em que os circuitos serão capazes de fazer a medição, 
+não podendo ter a frequência de corte abaixo dos 10KHz. 
+Circuito para Medição de Carga (Massa) 
+Requisitos: 
+▪ 2 canais para medição de células de carga com range de -500Kg a 500Kg. 
+Observações:  
+▪ Células de carga são compostas de Strain Gages, sendo necessária uma excitação 
+de tensão fixa em dois dos seus polos; 
+▪ A saída do Strain Gage será uma tensão proporcional à carga aplicada.   Circuito RTC (Real Time Clock) 
+Objetivo 
+Implementar um circuito de relógio de tempo real (RTC) utilizando o recurso interno do 
+microcontrolador STM32, com o auxílio de um cristal externo de 32.768 kHz e uma bateria de 
+backup. O sistema permite a contagem precisa e persistente de data e hora, mesmo na 
+ausência de alimentação principal. 
+Arquitetura Geral do Circuito 
+• RTC Interno do STM32: O microcontrolador STM32 possui um periférico RTC dedicado, 
+alimentado por um domínio de energia independente (VBAT), que mantém a contagem de 
+tempo mesmo quando o sistema principal está desligado. 
+• Cristal de 32.768 kHz: Um cristal padrão de relógio, com dois capacitores de 
+desacoplamento conectados ao GND (tipicamente entre 6 a 12 pF), é utilizado para 
+garantir precisão ao oscilador de baixa velocidade (LSE). 
+• Bateria de Backup (CR2032): Uma célula de lítio de 3V é conectada ao pino VBAT do 
+STM32. Isso garante a continuidade da operação do RTC durante quedas de energia ou 
+desligamentos do sistema. 
+Justificativa das Escolhas 
+• Uso do RTC interno do STM32: foi preferido em relação a CIs externos como o DS3231 por 
+proporcionar maior integração ao sistema, redução de custos e menor consumo 
+energético. Com ele, evita-se a necessidade de componentes adicionais, simplificando o 
+circuito, economizando espaço na placa e reduzindo o custo total. 
+• Cristal de 32.768 kHz: foi escolhido por ser a frequência padrão para relógios de tempo 
+real, oferecendo excelente estabilidade térmica e baixo consumo. Essa frequência é 
+suportada nativamente pelo oscilador LSE do STM32, garantindo precisão adequada para 
+aplicações de data logger e controle de eventos. 
+• Bateria CR2032: Garante a alimentação do domínio VBAT mesmo com a ausência de VDD 
+principal, mantendo a contagem de tempo sem necessidade de reconfiguração. Trata-se 
+de uma solução de longa duração e baixo custo, ideal para sistemas embarcados 
+autônomos. 
+Conclusão 
+O uso do RTC interno do STM32 com cristal externo de 32.768 kHz e bateria de backup é uma 
+solução robusta, econômica e eficiente para aplicações embarcadas que requerem contagem 
+persistente de tempo. A eliminação de CIs externos reduz a complexidade do projeto e facilita 
+o desenvolvimento, mantendo a funcionalidade essencial de marcação temporal com baixa 
+manutenção. Circuito para medição de massa
+ Objetivo
+ Projetar um circuito que permita a medição de massas de até 1000kg, utilizando-o em
+ umdata logger.
+ Componentes Utilizados
+  Célula de carga do tipo I-1T– ALFA INSTRUMENTOS, com capacidade de
+ medir massas até 1000kg, com resistência elétrica em sua entrada de 390 +/
+10 Ohms, e 350 +/- 1 Ohms na saída;
+  Circuito integrado ADS1232– TEXAS INSTRUMENTS, para leitura da célula
+ de carga, fazendo a interface com o microcontrolador;
+  Fontede alimentação 3,3– 5VCC para alimentação do CI e a célula de carga;
+  2Capacitores de 0,1micro-Farads;
+ Circuito integrado ADS1232– 24 Pinos
+ PINO
+ NOME
+ TIPO
+ DESCRIÇÃO
+ 1
+ DVDD
+ Digital
+ Fonte de alimentação digital: 2,7 V a
+ 5,3 V
+ 2
+ DGND
+ Digital
+ Terra digital
+ 3
+ CLKIN/XTAL 1
+ Entrada digital
+ Ligação de cristal externo 1, ou
+ entrada de relógio externo, ou ligação
+ baixa para ativar o oscilador interno.
+4 XTAL2 Digital Ligaçãodecristalexterno2
+ 5 DGND Digital Terradigital
+ 6 DGND Digital Terradigital
+ 7 TEMP Entradadigital Seleçãodosensordetemperatura
+ 8 A0 Entradadigital PinosdeseleçãoMUXdeentrada.
+ 9 CAP Analógico PassagemPGA,ligarumcondensador
+ de0,1µFaospinos9e10
+ 10 CAP Analógico PassagemPGA,ligarumcondensador
+ de0,1µFaospinos9e10
+ 11 AINNP1 Entradaanalógica Canaldeentradaanalógicapositiva1
+ 12 AINN1 Entradaanalógica Canaldeentradaanalógicanegativa1
+ 13 AINN2 Entradaanalógica Canaldeentradaanalógicanegativa2
+ 14 AINP2 Entradaanalógica Canaldeentradaanalógicapositiva2
+ 15 REFN Entradaanalógica Entradadereferênciapositiva
+ 16 REFP Entradaanalógica Entradadereferêncianegativa
+ 17 AGND Analógico Terraanalógico
+ 18 AVDD Analógico Fontedealimentaçãoanalógica:2,7V
+ a5,3V
+ 19 GAIN0 Entradadigital Pinosdeseleçãodeganho
+ 20 GAIN1 Entradadigital Pinosdeseleçãodeganho
+ 21 SPEED Entradadigital Seleçãodavelocidadededados
+ 22 PDWN/ Entradadigital Desligar:mantenhaestepinobaixo
+ paradesligarereiniciaroADC.
+ Alternaropinonodispositivoligaro
+ dispositivo
+ 23 SCLK Entradadigital Relógiodesérie:dadosdesaídado
+ relógionobordoascendente.
+ Tambémutilizadoparainiciara
+ calibraçãododesvioeosmodosde
+ espera
+ 24 DRDY/DOUT Saídadigital Saídadeduplafinalidade:
+ Osdadosprontosindicamdados
+ válidosaoentrarememestadobaixo.
+ Osdadosdesaídadedados,MSB
+ primeiro,naprimeiraborda
+ ascendentedeSCLK
+ Diagramadeblocos
+Célula de carga I-1T
+  Asconexões +Ee-Erepresentam os pontos de alimentação da célula de
+ carga, e as conexões +I e-I são os sinais para ligação ao CI mencionado.
+  Abaixo segue o diagrama que representa a integração entre célula de carga,
+ circuito integrado e microcontrolador para medição de massa.
+ Conclusão
+ A opção de se utilizar o CI mencionado deve-se a simplificação do circuito de data
+ logger, pois o mesmo permite realizar as leituras das variáveis do circuito e possui
+ conversor A/D interno, assim eliminando a necessidade do uso de CI’s extras,
+ tornando o hardware mais simples e compacto.Circuito para Cartão SD
+ Umdata logger é um dispositivo utilizado para coletar e armazenar dados ao longo do
+ tempo, geralmente utilizando sensores e um relógio de tempo real (RTC) para associar
+ data e hora às medições. Neste trabalho, será desenvolvido o circuito responsável por
+ gravar esses dados em um cartãoSD, permitindo seu uso posterior para análise.
+ Objetivo
+ Projetar um circuito que permita a gravação dos dados coletados por um sistema de
+ data logger em um cartão SD, utilizando um microprocessador ou microcontrolador
+ compatível com comunicação SPI e nível lógico de 3,3V, sem a necessidade de CIs
+ adicionais para interface.
+ Componentes Utilizados
+  Cartão SD(comadaptador se necessário)
+  RTCDS3231(parafornecer data e hora precisas)
+  Microcontrolador com SPI e 3.3V logic (Ex: ESP32, STM32, Teensy, ou
+ Arduino 3.3V)
+  Sensores (opcional, para simular leitura de dados: ex. DHT11 para temperatura)
+  Resistores de pull-up (se necessário para SPI)
+  Fontesde alimentação 3.3V
+ Comunicação SPI com Cartão SD
+ A comunicação com o cartão SD será feita através do barramento SPI (Serial
+ Peripheral Interface), que utiliza os seguintes pinos:
+ Sinal
+ Descrição
+ Pino no cartão SD
+ MISO
+ D0
+ Master In Slave Out
+ MOSI
+ Master Out Slave In
+ CMD
+ SCK
+ Clock
+ CLK
+ SC
+ CS
+ Chip Select
+Circuito Proposto
+ Microcontrolador (3.3V)
+ ├──SPI: MOSI → SD_CMD
+ ├──SPI: MISO ← SD_D0
+ ├──SPI: SCK →SD_CLK
+ └── SPI:CS →SD_CS
+ RTC DS3231
+ └── I2C: SDA/SCL → Microcontrolador (registrar data/hora)
+ Alimentação
+ ├──SDCard: 3.3V
+ └── RTC+MCU: 3.3V
+ Funcionamento do Sistema
+ 1. Omicrocontrolador inicializa o cartão SD via SPI.
+ 2. Lêadata e hora atual do RTC DS3231 via I2C.
+ 3. Lêdados de sensores (ex: temperatura).
+ 4. Cria um arquivo .txt ou .csv no cartão SD.
+ 5. Grava os dados no formato: data, hora, valor.
+ 6. Osdados podem ser acessados depois via computador.
+ Conclusão
+ Este circuito demonstra uma aplicação prática de sistemas embarcados, utilizando um
+ microcontrolador com interface SPI para gravar dados em um cartão SD,
+ acompanhado de um módulo RTC DS3231 para marcar as medições com data e hora.
+A simplicidade do circuito é possível graças à compatibilidade dos níveis lógicos e ao
+ uso direto do barramento SPI.Circuito de Leitura de Tensão e Corrente AC/DC com ADS1115 e STM32 
+Objetivo 
+Desenvolver um circuito de medição de tensão e corrente AC (até 10KHz) e DC com 
+capacidade de leitura de sinais de até 220V RMS e 5A, operando com pelo menos 10 
+amostragens por segundo. 
+Arquitetura Geral do Circuito 
+• Tensão: O sinal AC/DC de entrada é atenuado por um divisor resistivo (1MΩ e 12kΩ), 
+reduzindo tensões de até 320V pico para abaixo de 4.096V. Um buffer com amp-op TS912 
+(alimentado por fonte simétrica ±5V) garante alta impedância de entrada. Em seguida, o 
+sinal passa por um retificador de precisão (meia onda) e filtro RC (10k + 1µF), entregando 
+uma saída DC proporcional ao valor médio ou RMS da tensão. 
+• Corrente: Utiliza-se um resistor shunt de 0.04Ω/2W em configuração diferencial. Um 
+amp-op TS912 com ganho de 20x amplifica a queda de tensão diferencial. O sinal é então 
+retificado e filtrado como na etapa de tensão. 
+• Conversão: As saídas filtradas de cada canal são conectadas às entradas AIN0 a AIN3 do 
+ADS1115, configurado no modo GAIN_ONE (faixa ±4.096V). 
+Justificativa das Escolhas 
+• ADC - ADS1115: O modelo ADS1115 foi escolhido por sua resolução de 16 bits, 
+compatibilidade com I2C, configuração single-ended e ganho programável. Sua taxa de 
+amostragem máxima é 860 SPS, e mesmo em 10 SPS atende com folga ao requisito do 
+projeto quando combinado com o método de retificação e filtragem analógica. 
+• Amp-Op - TS912: O TS912 foi escolhido por ser um amplificador rail-to-rail com operação 
+em fonte simples ou simétrica, baixa tensão de offset e boa velocidade de resposta para 
+sinais de até 10 kHz. Sua capacidade de operar próximo aos valores de alimentação é 
+essencial para preservar a fidelidade do sinal mesmo com alimentação ±5V. 
+• Amostragem de 10 SPS: Embora os sinais AC possam ter frequências de até 10kHz, o 
+circuito foi projetado para medir o valor médio ou RMS após retificação e filtragem. Dessa 
+forma, o sinal que chega ao ADC é essencialmente DC. Assim, não é necessário respeitar 
+o critério de Nyquist para o sinal original de alta frequência, mas sim para o sinal filtrado, 
+que varia lentamente. A taxa de 10 SPS é mais do que suficiente para acompanhar essas 
+variações. 
+• Filtro Anti-Aliasing: O filtro RC de 1ª ordem (10kΩ e 1µF) com fc ≈ 16 Hz já atua como filtro 
+anti-aliasing eficaz. Sinais acima de 430 Hz (limite de Nyquist para ADS1115 a 860 SPS) já 
+são fortemente atenuados. Como o sinal retificado é basicamente DC, não há 
+necessidade de um filtro Sallen-Key de 2ª ordem, simplificando o circuito e economizando 
+componentes. 
+• Fonte Simétrica (±5V): Embora não seja um requisito, o uso de fonte simétrica melhora 
+significativamente a capacidade do circuito de processar sinais AC reais antes da 
+retificação. Isso evita recortes na parte negativa da onda, permitindo um retificador de 
+precisão mais eficiente. 
+Conclusão 
+O circuito desenvolvido atende plenamente os requisitos de medição de sinais AC e DC de até 
+220V RMS e 5A, com leitura de sinais de até 10kHz e amostragem mínima de 10 SPS. A 
+abordagem de retificação e filtração analógica permite que o ADC opere com baixa taxa de 
+amostragem sem perda de informação. O filtro RC implementado atua como anti-aliasing 
+eficaz dentro do contexto, e o uso de fonte simétrica melhora a linearidade e precisão do 
+sistema. Trata-se de uma solução robusta, compacta e tecnicamente fundamentada para 
+medições de tensão e corrente AC/DC. Circuito de Leitura de Temperatura de PTCs com ADS1115 e STM32 
+Objetivo 
+Desenvolver um circuito de medição de temperatura utilizando sensores PT1000 com base em 
+ponte de Wheatstone, realizando a leitura por meio de um conversor analógico-digital 
+ADS1115 de 16 bits com interface I2C. O sistema deve ser capaz de monitorar variações 
+térmicas em dois canais com alta precisão, imunidade a ruídos e operação simplificada. 
+Arquitetura Geral do Circuito 
+• Sensor: Utiliza-se o sensor resistivo PT1000, que possui um coeficiente de temperatura de 
+aproximadamente 3,85 Ω/°C. Sua resistência de repouso é de 1000 Ω a 0°C. 
+• Ponte de Wheatstone: Cada sensor é incorporado em uma ponte de Wheatstone com três 
+resistores de precisão de 1kΩ. Essa configuração permite transformar variações de 
+resistência do sensor em sinais diferenciais de tensão, diretamente compatíveis com a 
+entrada do ADC. 
+• Leitura via ADC: O circuito usa o ADS1115, um conversor analógico-digital de 16 bits. Os 
+canais diferenciais AIN0-AIN1 e AIN2-AIN3 são utilizados para as duas pontes. O pino 
+ADDR é conectado ao GND, estabelecendo o endereço I2C 0x48 (HEX). 
+• Alimentação: A alimentação do circuito é de 5V, tanto para as pontes de Wheatstone 
+quanto para o ADS1115. Essa escolha amplia a faixa de tensão gerada pelas pontes e 
+melhora a sensibilidade e a relação sinal/ruído do sistema. 
+• Filtro Passa-Baixa: Cada entrada do ADC possui um filtro RC de primeira ordem com 
+resistor de 1kΩ e capacitor de 1µF, resultando em uma frequência de corte de 
+aproximadamente 159Hz. Essa configuração atenua ruídos de alta frequência sem 
+prejudicar a resposta lenta das variações de temperatura. 
+Justificativa das Escolhas 
+• Sensor PT1000: Escolhido por sua alta estabilidade, baixa sensibilidade a ruídos em 
+longos cabos e coeficiente de temperatura elevado (3,85 Ω/°C), o que aumenta a 
+resolução de leitura comparado ao PT100. Além disso, exige menor corrente no circuito, 
+reduzindo o autocalentamento. 
+• Resistores Precisos: Utilização de resistores de 1kΩ ±0.1% garante equilíbrio da ponte e 
+linearidade nas leituras. 
+• Alimentação de 5V: Aumenta a amplitude do sinal diferencial nas pontes. Melhora o 
+aproveitamento da faixa de entrada do ADS1115 (±4.096V com GAIN_ONE). Reduz a 
+influência de ruídos relativos (melhor SNR). 
+• Filtro RC de 1ª Ordem (1kΩ + 1µF): Atua como filtro anti-aliasing, reduzindo ruídos e 
+interferências típicas de fontes chaveadas e sinais de RF. A frequência de corte baixa (~159 
+Hz) é adequada, considerando que o sinal de temperatura se comporta como quase DC. 
+Como as variações térmicas são lentas, não há necessidade de filtros ativos de segunda 
+ordem, como Sallen-Key. Isso simplifica o circuito e reduz o consumo de energia e o 
+espaço ocupado. 
+• Compatibilidade I2C e Conversão de Níveis Lógicos: Como o ADS1115 é alimentado 
+com 5V e o STM32 opera com nível lógico de 3.3V, será adotado o PCA9306, um conversor 
+bidirecional de nível lógico específico para barramentos I2C. Mantém a integridade da 
+comunicação I2C sem necessidade de resistores adicionais. É compacto, estável e 
+amplamente utilizado em projetos com diferença de tensão entre dispositivos I2C. 
+Conclusão 
+O circuito proposto permite a leitura precisa de dois sensores PT1000 através de uma 
+arquitetura robusta e eficiente com ponte de Wheatstone, filtros analógicos e leitura 
+diferencial via ADS1115. A alimentação de 5V proporciona maior faixa dinâmica e melhor 
+relação sinal/ruído. O filtro RC de 1ª ordem atua como anti-aliasing eficaz, sem necessidade 
+de filtros de segunda ordem, o que simplifica o design. A compatibilidade lógica entre o ADC e 
+o microcontrolador é garantida com o uso do conversor PCA9306. Trata-se de uma solução 
+precisa, compacta e confiável para medições de temperatura. Principais Características do DS3231:
+  AltaPrecisão: Possui um oscilador de cristal interno compensado por
+ temperatura (TCXO), garantindo um desvio muito pequeno ao longo do tempo.
+  BateriaAuxiliar: Pode operar com uma bateria CR2032, garantindo que a
+ contagem do tempo continue mesmo quando o sistema principal é desligado.
+  AlarmeeTemporizador: Permite configurar alarmes e interrupções para
+ executar ações em horários específicos.
+  SensordeTemperaturaInterno: Mede a temperatura ambiente com precisão
+ de ±3°C.
+ Aplicações:
+  Registrode dados (data logger)
+  Relógios ecronômetros digitais
+  Controle detempoemsistemas embarcados
+  Dispositivos de automação residencial
+ Esquema de Ligação do DS3231 (CI Puro)
+ Componentes necessários:
+  DS3231
+  BateriaCR2032(3V)
+  Resistores de Pull-up (4,7kΩ) para SDA e SCL
+  Capacitores de desacoplamento (100nF opcional)
+  Conexões principais do CI
+ DS3231:
+Pino Nome
+ Função
+ Descrição
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 32kHz
+ VCC
+ GND
+ SDA
+ SCL
+ /INT/SQW
+ VBAT
+ Saída de clock de
+ 32.768 kHz
+ Alimentação
+ principal (3.3V ou
+ 5V)
+ Terra do circuito
+ Fornece um sinal de clock estável para outros
+ dispositivos, pode ser ativado/desativado via
+ software.
+ Fornece energia ao CI. Pode operar com 3.3V ou
+ 5V.
+ Conectado ao terra do sistema.
+ Linha de dados I²C Comunicação de dados via protocolo I²C com o
+ microcontrolador ou outro mestre I²C.
+ Linha de clock I²C Fornece o sinal de clock parasincronização no
+ barramento I²C.
+ Saída de
+ interrupção ou
+ onda quadrada
+ Entrada para
+ bateria reserva
+ (CR2032)
+ Notas Importantes:
+ Pode ser usado como umalarme (interrupção) ou
+ para gerar um sinal de onda quadrada
+ programável (1Hz, 4kHz, 8kHz, 32kHz).
+ Mantém orelógio funcionando quando a
+ alimentação principal (VCC) é desligada.
+  BarramentoI²C: Ospinos SDAe SCL exigem resistores pull-up (geralmente
+ 4.7kΩ ou 10kΩ) paraum funcionamento estável.
+  BateriadeBackup (VBAT): Permite que o CI continue contando o tempo
+ mesmoquandoaalimentação principal (VCC) é desligada.
+  Alarme&OndaQuadrada:Opino/INT/SQWpodeserconfigurado via
+ software para gerar alertas ou um sinal de clock auxiliar.
+Esquema elétrico mostrando a conexão entre o Arduino Uno e o DS3231.
