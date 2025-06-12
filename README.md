@@ -30,7 +30,7 @@ Pra leitura de temperatura ficou assim os dois canais, depois vou detalhar melho
 
 Medidor de massa ADS1232.  
 
-E de temperatura circuito genérico.  
+E de temperatura.  
 
 USB recebe dados para configurações.  
 Quantos dados o SD consegue processar por GB.
