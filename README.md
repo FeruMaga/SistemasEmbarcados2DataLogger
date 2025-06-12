@@ -28,4 +28,12 @@ O SD por ser compatível com SPI e o STM trabalhar em 3.3V, pode ser ligado dire
 
 Pra leitura de temperatura ficou assim os dois canais, depois vou detalhar melhor o funcionamento e mandar aqui, mas basicamente consegui pensar em um circuito que seja genérico para todas as grandezas, alterando apenas os ganhos pra cada um.
 
+Medidor de massa ADS1232.
+
+E de temperatura circuito genérico.
+
 ![Circuito](Circuitos/circuito.jpg)
+
+
+
+

@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "fatfs.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -85,7 +86,7 @@ RTC_HandleTypeDef hrtc;
 
 SPI_HandleTypeDef hspi2;
 
-UART_HandleTypeDef huart1;
+PCD_HandleTypeDef hpcd_USB_FS;
 
 DMA_HandleTypeDef hdma_memtomem_dma1_channel2;
 /* USER CODE BEGIN PV */
@@ -104,8 +105,8 @@ static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_SPI2_Init(void);
-static void MX_USART1_UART_Init(void);
 static void MX_RTC_Init(void);
+static void MX_USB_PCD_Init(void);
 /* USER CODE BEGIN PFP */
 void halADCConvCallback(ADC_HandleTypeDef* hadc);
 void SDWriteData(char* data);
@@ -140,14 +141,10 @@ void SDWriteData(char* data)
 	}
 }
 
-float ReadADS1232Massa1(void) {
+float ReadADS1232Massa(void) {
 
 }
 
-
-float ReadADS1232Massa2(void) {
-
-}
 
 /* USER CODE END 0 */
 
@@ -184,8 +181,9 @@ int main(void)
   MX_ADC1_Init();
   MX_I2C1_Init();
   MX_SPI2_Init();
-  MX_USART1_UART_Init();
   MX_RTC_Init();
+  MX_FATFS_Init();
+  MX_USB_PCD_Init();
   /* USER CODE BEGIN 2 */
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, ADC_BUFFER_SIZE);
   /* USER CODE END 2 */
@@ -195,37 +193,6 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  if(adcDmaTransferComplete) {
-
-		  adcDmaTransferComplete = 0;
-
-
-		  tensao1Eng = ((float)adcBuffer[ADC_TENSAO1] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_TENSAO1;
-		  tensao2Eng = ((float)adcBuffer[ADC_TENSAO2] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_TENSA2;
-
-		  corrente1Eng = ((float)adcBuffer[ADC_CORRENTE1] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_CORRENTE1;
-		  corrente2Eng = ((float)adcBuffer[ADC_CORRENTE2] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_CORRENTE2;
-
-		  temperatura1Eng = ((float)adcBuffer[ADC_TEMPERATURA1] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_TEMPERATURA1;
-		  temperatura2Eng = ((float)adcBuffer[ADC_TEMPERATURA2] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_TEMPERATURA2;
-
-		  massa1Eng = ReadADS1232Massa1();
-		  massa2Eng = ReadADS1232Massa2();
-
-		  char dataToWrite[200];
-		  RTC_TimeTypeDef sTime;
-		  RTC_DateTypeDef sDate;
-
-		  HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-		  HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-
-		  sprintf(dataToWrite, "%02d/%02d/%04d %02d:%02d:%02d, T1:%.2fV, T2:%.2fV, C1:%.2fA, C2:%.2fA, Temp1:%.2fC, Temp2:%.2fC, Massa1:%.2fg, Massa2:%.2fg\n",
-		             sDate.Date, sDate.Month, (sDate.Year + 2000), sTime.Hours, sTime.Minutes, sTime.Seconds,
-		             tensao1Eng, tensao2Eng, corrente1Eng, corrente2Eng, temperatura1Eng, temperatura2Eng, massa1Eng, massa2Eng);
-
-
-		  SD_WriteData(data_to_write);
-	  }
 
     /* USER CODE BEGIN 3 */
   }
@@ -249,7 +216,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI_DIV2;
+  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -268,9 +237,11 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_ADC;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_ADC
+                              |RCC_PERIPHCLK_USB;
   PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV2;
+  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
@@ -502,7 +473,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -518,35 +489,33 @@ static void MX_SPI2_Init(void)
 }
 
 /**
-  * @brief USART1 Initialization Function
+  * @brief USB Initialization Function
   * @param None
   * @retval None
   */
-static void MX_USART1_UART_Init(void)
+static void MX_USB_PCD_Init(void)
 {
 
-  /* USER CODE BEGIN USART1_Init 0 */
+  /* USER CODE BEGIN USB_Init 0 */
 
-  /* USER CODE END USART1_Init 0 */
+  /* USER CODE END USB_Init 0 */
 
-  /* USER CODE BEGIN USART1_Init 1 */
+  /* USER CODE BEGIN USB_Init 1 */
 
-  /* USER CODE END USART1_Init 1 */
-  huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
+  /* USER CODE END USB_Init 1 */
+  hpcd_USB_FS.Instance = USB;
+  hpcd_USB_FS.Init.dev_endpoints = 8;
+  hpcd_USB_FS.Init.speed = PCD_SPEED_FULL;
+  hpcd_USB_FS.Init.low_power_enable = DISABLE;
+  hpcd_USB_FS.Init.lpm_enable = DISABLE;
+  hpcd_USB_FS.Init.battery_charging_enable = DISABLE;
+  if (HAL_PCD_Init(&hpcd_USB_FS) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN USART1_Init 2 */
+  /* USER CODE BEGIN USB_Init 2 */
 
-  /* USER CODE END USART1_Init 2 */
+  /* USER CODE END USB_Init 2 */
 
 }
 
