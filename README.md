@@ -4,12 +4,6 @@ Necessário logar no STM32 Cube IDE e permitir instalações.
 
 Microprocessador STM32F103C8T6
 
-Leitura de Tensão e Corrente, serão feitas por um ADS1115 em configuração Single-Ended, um canal do ADC pra cada canal de medição, a comunicação dele é I2C.
-
-Temperatura será mais um ADS1115 em configuração diferencial, canal 0 e 1 do ADC para o primeiro canal de temperatura e canal 2 e 3 do adc para o segundo canal de medição.
-
-Para o circuito de massa um ADS1232, tem comunicação UART(USUART) com o microprocessador.
-
 ADC12_IN0	Tensão1
 ADC12_IN1	Tensão2
 ADC12_IN2	Corrente1
@@ -19,8 +13,7 @@ ADC12_IN5	Temperatura2
 ADC12_IN6	Massa1
 ADC12_IN7	Massa2
 
-amostre sinais de até 10kHz
-Isso significa que precisam ser 20 mil amostras por segundos pra ter um sinal confiável
+Amostre sinais de até 10kHz, isso significa que precisam ser 20 mil amostras por segundos pra ter um sinal confiável
 
 Pra essa amostragem acredito que teria que usar DMA pra armazenar os dados em um buffer e depois executar a conversão e salvar no SD
 
@@ -28,3 +21,11 @@ Pra essa amostragem acredito que teria que usar DMA pra armazenar os dados em um
 
 Configurar o micro para usar DMA para leitura dos canais ADC.
 Conversão de counts para unidade de engenharia ao gravar no micro SD.
+
+O cristal no pino 3 e 4 é pra viabilizar o RTC interno, junto com a bateria no pino 1 que mantém o tempo salvo ao desligar. A interface USB está sendo feita diretamente pela porta do STM mesmo, no SPI está o cartão SD.
+
+O SD por ser compatível com SPI e o STM trabalhar em 3.3V, pode ser ligado diretamente sem uso de CI.
+
+Pra leitura de temperatura ficou assim os dois canais, depois vou detalhar melhor o funcionamento e mandar aqui, mas basicamente consegui pensar em um circuito que seja genérico para todas as grandezas, alterando apenas os ganhos pra cada um.
+
+![Circuito](Circuitos/circuito.jpg)
