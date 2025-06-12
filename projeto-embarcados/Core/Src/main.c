@@ -81,8 +81,19 @@ float ReadADS1232Massa2(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+extern uint16_t adcBuffer[ADC_BUFFER_SIZE];
+char logBuffer[128];
+char timestamp[32];
+uint32_t lastLogTime = 0;
+const uint32_t LOG_INTERVAL_MS = 1000;
 
-
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+  if (hadc->Instance == ADC1) // Garante que o callback é do ADC correto
+  {
+    ADC_Sensor_HandleDMA_Complete(); // Chama a função para processar os dados do ADC
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -122,7 +133,10 @@ int main(void)
   MX_FATFS_Init();
   MX_USB_PCD_Init();
   /* USER CODE BEGIN 2 */
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, ADC_BUFFER_SIZE);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, ADC_BUFFER_SIZE);ADC_Sensor_Init(&hadc1); 
+  SD_Logger_Init(&hspi2);
+  USB_Init(&hpcd_USB_FS);
+  ADC_Sensor_StartConversion();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -132,6 +146,30 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    uint32_t now = HAL_GetTick();
+    if (now - lastLogTime >= LOG_INTERVAL_MS) {
+        lastLogTime = now;
+
+        RTC_TimeTypeDef time;
+        RTC_DateTypeDef date;
+        RTC_GetDateTime(&hrtc, &time, &date);
+        RTC_FormatDateTime(&time, &date, timestamp, sizeof(timestamp));
+
+        // Formata os dados de engenharia filtrados
+        snprintf(logBuffer, sizeof(logBuffer),
+                 "%s;T1=%.2fV;C1=%.2fA;TEMP1=%.2fC;MASSA1=%.2fkg;T2=%.2fV;C2=%.2fA;TEMP2=%.2fC;MASSA2=%.2fkg\r\n", // ALTERAÇÃO: Incluindo todos os canais
+                 timestamp,
+                 ADC_Sensor_GetTensao1(),
+                 ADC_Sensor_GetCorrente1(),
+                 ADC_Sensor_GetTemperatura1(),
+                 ADC_Sensor_GetMassa1(),
+                 ADC_Sensor_GetTensao2(),
+                 ADC_Sensor_GetCorrente2(),
+                 ADC_Sensor_GetTemperatura2(),
+                 ADC_Sensor_GetMassa2());
+
+        SD_Logger_WriteData(logBuffer);
+    }
   }
   /* USER CODE END 3 */
 }

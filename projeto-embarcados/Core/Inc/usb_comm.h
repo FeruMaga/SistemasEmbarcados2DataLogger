@@ -2,7 +2,7 @@
  * usb.h
  *
  *  Created on: Jun 12, 2025
- *      Author: extre
+ *      Author: FeruMaga
  */
 
 #ifndef INC_USB_COMM_H_
@@ -17,7 +17,6 @@
 
 #define USB_RX_BUFFER_SIZE 256
 
-void USB_Init(PCD_HandleTypeDef* hpcd);
 void USB_Receive(uint8_t* Buf, uint32_t Len);
 bool USB_ProcessCalibrationCommand(uint8_t* data, uint32_t len, CalibrationData_t* calData);
 void USB_Send(char* str);

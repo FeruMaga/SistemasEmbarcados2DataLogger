@@ -10,6 +10,7 @@
 
 
 #include "main.h"
+#include <stdbool.h>
 
 #define NUM_ADC_CHANNELS 8
 #define ADC_BUFFER_SIZE (NUM_ADC_CHANNELS * 64)
@@ -48,7 +49,8 @@ typedef struct {
 extern CalibrationData_t gCalibrationData;
 
 void ADC_Sensor_Init(ADC_HandleTypeDef* hadc);
-void ADC_Sensor_ProcessData(uint16_t* rawBuffer);
+void ADC_Sensor_StartConversion(void);
+void ADC_Sensor_HandleDMA_Complete(void);
 float ADC_Sensor_Convert_Tensao(uint16_t adc_raw, float offset, float coeff);
 float ADC_Sensor_Convert_Corrente(uint16_t adc_raw, float offset, float coeff);
 float ADC_Sensor_Convert_Temperatura(uint16_t adc_raw, float offset, float coeff);

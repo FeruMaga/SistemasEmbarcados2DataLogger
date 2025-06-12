@@ -2,7 +2,7 @@
  * filter.h
  *
  *  Created on: Jun 12, 2025
- *      Author: extre
+ *      Author: FeruMaga
  */
 
 #ifndef INC_FILTER_H_
