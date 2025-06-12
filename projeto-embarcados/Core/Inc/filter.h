@@ -13,7 +13,7 @@
 #define FILTER_ALPHA_TEMPERATURA  0.2f
 #define FILTER_ALPHA_MASSA        0.02f
 
-float filter_lowpass(float oldValue, float newValue, float alpha);
+float Filter_Lowpass(float oldValue, float newValue, float alpha);
 
 #endif /* INC_FILTER_H_ */
 
