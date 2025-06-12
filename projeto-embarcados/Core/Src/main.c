@@ -32,6 +32,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+
 #define NUM_ADC_CHANNELS 8
 
 #define ADC_BUFFER_SIZE (NUM_ADC_CHANNELS * 64)
@@ -44,6 +46,27 @@
 #define ADC_TEMPERATURA2  5
 #define ADC_MASSA1        6
 #define ADC_MASSA2        7
+
+#define ADC_MAX_VALUE 4095.0f
+
+#define ADC_VREF 3.3f
+
+#define CALIBRATION_FACTOR_TENSAO1      66.66f
+#define CALIBRATION_FACTOR_TENSA2       66.66f
+
+// Fatores de calibração para corrente (A/count_ADC)
+#define CALIBRATION_FACTOR_CORRENTE1    0.1f
+#define CALIBRATION_FACTOR_CORRENTE2    0.1f
+
+// Fatores de calibração para temperatura (C/count_ADC)
+#define CALIBRATION_FACTOR_TEMPERATURA1 100.0f
+#define CALIBRATION_FACTOR_TEMPERATURA2 100.0f
+
+// Placeholder para o ADS1232
+#define CALIBRATION_FACTOR_MASSA1       0.001f
+#define CALIBRATION_FACTOR_MASSA2       0.001f
+
+
 
 /* USER CODE END PD */
 
@@ -66,7 +89,12 @@ UART_HandleTypeDef huart1;
 
 DMA_HandleTypeDef hdma_memtomem_dma1_channel2;
 /* USER CODE BEGIN PV */
-
+uint16_t adcBuffer[ADC_BUFFER_SIZE];
+float tensao1Eng, tensao2Eng;
+float corrente1Eng, corrente2Eng;
+float temperatura1Eng, temperatura2Eng;
+float massa1Eng, massa2Eng;
+volatile uint8_t adcDmaTransferComplete = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -79,11 +107,47 @@ static void MX_SPI2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_RTC_Init(void);
 /* USER CODE BEGIN PFP */
-
+void halADCConvCallback(ADC_HandleTypeDef* hadc);
+void SDWriteData(char* data);
+float ReadADS1232Massa1(void);
+float ReadADS1232Massa2(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void halADCConvCallback(ADC_HandleTypeDef* hadc) {
+	if(hadc->Instance == ADC1) {
+		adcDmaTransferComplete = 1;
+	}
+}
+
+FATFS fs;
+FIL fil;
+FRESULT fr;
+char log_file[] = "log.txt";
+
+void SDWriteData(char* data)
+{
+	fr = f_mount(&fs, "", 1);
+	if(fr == FR_OK) {
+		fr = f_open(&fil, log_file_name, FA_OPEN_ALWAYS | FA_WRITE);
+		if(fr == FR_OK) {
+			f_lseek(&fil, f_size(&fil));
+			f_puts(data, &fil);
+			f_close(&fil);
+		}
+		f_mount(NULL, "", 1);
+	}
+}
+
+float ReadADS1232Massa1(void) {
+
+}
+
+
+float ReadADS1232Massa2(void) {
+
+}
 
 /* USER CODE END 0 */
 
@@ -123,7 +187,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, ADC_BUFFER_SIZE);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -131,6 +195,37 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  if(adcDmaTransferComplete) {
+
+		  adcDmaTransferComplete = 0;
+
+
+		  tensao1Eng = ((float)adcBuffer[ADC_TENSAO1] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_TENSAO1;
+		  tensao2Eng = ((float)adcBuffer[ADC_TENSAO2] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_TENSA2;
+
+		  corrente1Eng = ((float)adcBuffer[ADC_CORRENTE1] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_CORRENTE1;
+		  corrente2Eng = ((float)adcBuffer[ADC_CORRENTE2] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_CORRENTE2;
+
+		  temperatura1Eng = ((float)adcBuffer[ADC_TEMPERATURA1] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_TEMPERATURA1;
+		  temperatura2Eng = ((float)adcBuffer[ADC_TEMPERATURA2] / ADC_MAX_VALUE) * ADC_VREF * CALIBRATION_FACTOR_TEMPERATURA2;
+
+		  massa1Eng = ReadADS1232Massa1();
+		  massa2Eng = ReadADS1232Massa2();
+
+		  char dataToWrite[200];
+		  RTC_TimeTypeDef sTime;
+		  RTC_DateTypeDef sDate;
+
+		  HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+		  HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
+		  sprintf(dataToWrite, "%02d/%02d/%04d %02d:%02d:%02d, T1:%.2fV, T2:%.2fV, C1:%.2fA, C2:%.2fA, Temp1:%.2fC, Temp2:%.2fC, Massa1:%.2fg, Massa2:%.2fg\n",
+		             sDate.Date, sDate.Month, (sDate.Year + 2000), sTime.Hours, sTime.Minutes, sTime.Seconds,
+		             tensao1Eng, tensao2Eng, corrente1Eng, corrente2Eng, temperatura1Eng, temperatura2Eng, massa1Eng, massa2Eng);
+
+
+		  SD_WriteData(data_to_write);
+	  }
 
     /* USER CODE BEGIN 3 */
   }
