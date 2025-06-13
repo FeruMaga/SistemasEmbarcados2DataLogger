@@ -58,8 +58,6 @@ RTC_HandleTypeDef hrtc;
 SPI_HandleTypeDef hspi2;
 
 DMA_HandleTypeDef hdma_memtomem_dma1_channel2;
-
-PCD_HandleTypeDef hpcd_USB_FS;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -138,9 +136,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	 while (1) // Loop infinito: o código dentro deste bloco será executado repetidamente
 	  {
-	    /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
-	    /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
 		 // Marcadores de código gerados automaticamente para áreas de usuário
 		 uint32_t now = HAL_GetTick(); // Obtém o tempo atual em milissegundos desde o boot do microcontrolador
 
@@ -176,7 +174,7 @@ int main(void)
 		  }
 	  }
   /* USER CODE END 3 */
-} // Final da Main
+}
 
 /**
   * @brief System Clock Configuration
