@@ -1,3 +1,14 @@
-Estou usando o STM 32 Cube. O sistema captura através do ADC os dados, como dados de engenharia. E armazena no SD. É necessário aplicar filtro passa-baixa. E se o usb não receber os dados de calibração ele usa o mocado para o calculo, se o USB receber os dados de calibração para o cálculo dos dados de engenharia substitui pelos dados mocados.
+Divisão:
+Maria:
+- Configuração do STM32CubeIde (1 slide)
+- Divisão de arquivos por responsabilidade (1 slide)
+- Main (1 slide)
+- RTC (2 slides)
+- Filtro (2 slides)
+- USB Communication (2 slides)
 
-O meu sistema ta dividido em adc_sensor.h, filter.h, rtc_utils.h, sd_logger.h e usb_common.h.
+
+
+Yago:
+- SD (3 slides)
+- ADC(4 slides)
