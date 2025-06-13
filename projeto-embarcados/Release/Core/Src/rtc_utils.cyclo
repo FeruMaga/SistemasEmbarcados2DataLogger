@@ -1,0 +1,4 @@
+../Core/Src/rtc_utils.c:11:6:RTC_Init	1
+../Core/Src/rtc_utils.c:15:6:RTC_GetDateTime	1
+../Core/Src/rtc_utils.c:20:6:RTC_SetDateTime	1
+../Core/Src/rtc_utils.c:35:6:RTC_FormatDateTime	1
